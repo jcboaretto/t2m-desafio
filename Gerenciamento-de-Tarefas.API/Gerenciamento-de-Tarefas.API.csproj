@@ -8,7 +8,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.66" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.7" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.13.0" />
+    <PackageReference Include="Npgsql" Version="9.0.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Gerenciamento-de-Tarefas.Application\Gerenciamento-de-Tarefas.Application.csproj" />
+    <ProjectReference Include="..\Gerenciamento-de-Tarefas.Domain\Gerenciamento-de-Tarefas.Domain.csproj" />
+    <ProjectReference Include="..\Gerenciamento-de-Tarefas.Infrastructure\Gerenciamento-de-Tarefas.Infrastructure.csproj" />
+    <ProjectReference Include="..\Gerenciamento-de-Tarefas.Tests\Gerenciamento-de-Tarefas.Tests.csproj" />
   </ItemGroup>
 
 </Project>
