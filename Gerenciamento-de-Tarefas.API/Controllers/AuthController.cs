@@ -17,13 +17,17 @@ namespace Gerenciamento_de_Tarefas.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDTO loginDTO)
         {
-            var token = await _tokenService.GenerateToken(loginDTO);
-
-            if (string.IsNullOrEmpty(token))
-                return Unauthorized("Usuário ou senha inválidos");
-
-            return Ok(token);
+            try
+            {
+                var token = await _tokenService.GenerateToken(loginDTO);
+                return Ok(new { token });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Unauthorized("Usuário ou senha inválidos.");
+            }
         }
+
 
     }
 }

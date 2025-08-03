@@ -159,11 +159,13 @@ var app = builder.Build();
 // Criação das tabelas
 using (var scope = app.Services.CreateScope())
 {
+    var usuarioRepository = scope.ServiceProvider.GetRequiredService<IUsuarioRepository>();
+    await usuarioRepository.CriarTabelaAsync();
+
     var repo = scope.ServiceProvider.GetRequiredService<ITarefaRepository>();
     await repo.CriarTabelaAsync();
 
-    var usuarioRepository = scope.ServiceProvider.GetRequiredService<IUsuarioRepository>();
-    await usuarioRepository.CriarTabelaAsync();
+    
 }
 
 app.UseSwagger();
