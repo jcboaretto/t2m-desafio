@@ -7,4 +7,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="NovaPasta\**" />
+    <Compile Remove="Repository\**" />
+    <EmbeddedResource Remove="NovaPasta\**" />
+    <EmbeddedResource Remove="Repository\**" />
+    <None Remove="NovaPasta\**" />
+    <None Remove="Repository\**" />
+  </ItemGroup>
+
 </Project>

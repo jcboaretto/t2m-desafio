@@ -1,7 +1,8 @@
-using System.Data;
-using Npgsql;
+using Gerenciamento_de_Tarefas.Application.Services;
 using Gerenciamento_de_Tarefas.Domain.Repositories;
 using Gerenciamento_de_Tarefas.Infrastructure.Repositories;
+using Npgsql;
+using System.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +19,10 @@ builder.Services.AddScoped<IDbConnection>(sp =>
 builder.Services.AddScoped<ITarefaRepository, TarefaRepository>();
 
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+
+builder.Services.AddScoped<ITarefaService, TarefaService>();
+
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
 var app = builder.Build();
 
