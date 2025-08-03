@@ -92,7 +92,7 @@ namespace Gerenciamento_de_Tarefas.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> ListarTodos()
+        public async Task<ActionResult<IEnumerable<UsuarioResponseDTO>>> ListarTodos()
         {
             try
             {

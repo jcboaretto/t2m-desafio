@@ -158,7 +158,7 @@ namespace Gerenciamento_de_Tarefas.API.Controllers
         }
 
         [HttpPost("criar")]
-        public async Task<IActionResult> Adicionar([FromBody] TarefaDTO dto)
+        public async Task<IActionResult> Adicionar(CreateTarefaDTO dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -169,7 +169,7 @@ namespace Gerenciamento_de_Tarefas.API.Controllers
         }
 
         [HttpPut("atualizar/{id}")]
-        public async Task<IActionResult> Atualizar(int id, [FromBody] TarefaDTO dto)
+        public async Task<IActionResult> Atualizar(int id,TarefaDTO dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
