@@ -118,6 +118,7 @@
 
 using Gerenciamento_de_Tarefas.Application.DTOs;
 using Gerenciamento_de_Tarefas.Application.Services;
+using Gerenciamento_de_Tarefas.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -179,9 +180,9 @@ namespace Gerenciamento_de_Tarefas.API.Controllers
         }
 
 
-        
+
         [HttpPut("atualizar/{id}")]
-        public async Task<IActionResult> Atualizar(int id, UpdateTarefaDTO dto) // <-- aqui está o tipo correto
+        public async Task<IActionResult> Atualizar(int id, UpdateTarefaDTO dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -192,29 +193,12 @@ namespace Gerenciamento_de_Tarefas.API.Controllers
 
             var userId = int.Parse(userIdClaim.Value);
 
-            var sucesso = await _tarefaService.AtualizarAsync(id, dto, userId); // <-- agora o tipo bate com a interface
+            var (sucesso, mensagem) = await _tarefaService.AtualizarAsync(id, dto, userId);
 
             if (!sucesso)
-                return NotFound("Tarefa não encontrada ou não pertence ao usuário.");
+                return BadRequest(mensagem);
 
-            return Ok("Tarefa atualizada!");
-        }
-
-        [Authorize]
-        [HttpGet("auth-check")]
-        public IActionResult AuthCheck()
-        {
-            if (User.Identity?.IsAuthenticated == true)
-            {
-                return Ok(new
-                {
-                    isAuthenticated = true,
-                    name = User.Identity.Name,
-                    userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                });
-            }
-
-            return Unauthorized("Não autenticado.");
+            return Ok(mensagem);
         }
 
 
