@@ -10,6 +10,9 @@
 
         public String Password { get; set; }
 
+        //public DateTime DataCriacao { get; set; } = DateTime.Now;
+
+        public List<Tarefa> Tarefas { get; set; } = new List<Tarefa>();
 
     }
 }

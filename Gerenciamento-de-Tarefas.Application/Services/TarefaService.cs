@@ -28,13 +28,32 @@ namespace Gerenciamento_de_Tarefas.Application.Services
                 Id = t.Id,
                 Titulo = t.Titulo,
                 Descricao = t.Descricao,
-                Status = t.Status.ToString()
+                Status = t.Status,
+                UsuarioId = t.UsuarioId
+                
             });
         }
+
+        public async Task<IEnumerable<TarefaDTO>> ListarTarefasDoUsuarioAsync(int usuarioId)
+        {
+            var tarefas = await _tarefaRepository.ListarTarefasDoUsuarioAsync(usuarioId);
+
+            return tarefas.Select(t => new TarefaDTO
+            {
+                Id = t.Id,
+                Titulo = t.Titulo,
+                Descricao = t.Descricao,
+                Status = t.Status,
+                UsuarioId = t.UsuarioId
+            });
+        }
+
 
         public async Task<TarefaDTO?> BuscarPorIdAsync(int id)
         {
             var tarefa = await _tarefaRepository.BuscarPorIdAsync(id);
+
+            
 
             if (tarefa == null)
                 return null;
@@ -44,17 +63,19 @@ namespace Gerenciamento_de_Tarefas.Application.Services
                 Id = tarefa.Id,
                 Titulo = tarefa.Titulo,
                 Descricao = tarefa.Descricao,
-                Status = tarefa.Status.ToString()
+                Status = tarefa.Status,
+                UsuarioId = tarefa.UsuarioId
             };
         }
 
-        public async Task<TarefaDTO> AdicionarAsync(TarefaDTO dto)
+        public async Task<TarefaDTO> AdicionarAsync(CreateTarefaDTO newDTO, int usuarioId)
         {
             var tarefa = new Tarefa
             {
-                Titulo = dto.Titulo,
-                Descricao = dto.Descricao,
-                Status = Enum.Parse<Status>(dto.Status)
+                Titulo = newDTO.Titulo,
+                Descricao = newDTO.Descricao,
+                Status = Status.Pendente,
+                UsuarioId = usuarioId
             };
 
             await _tarefaRepository.AdicionarAsync(tarefa);
@@ -64,40 +85,78 @@ namespace Gerenciamento_de_Tarefas.Application.Services
                 Id = tarefa.Id,
                 Titulo = tarefa.Titulo,
                 Descricao = tarefa.Descricao,
-                Status = tarefa.Status.ToString()
+                Status = tarefa.Status,
+                UsuarioId = tarefa.UsuarioId
             };
         }
 
-        public async Task<bool> AtualizarAsync(int id, TarefaDTO dto)
-        {
-            var tarefaExistente = await _tarefaRepository.BuscarPorIdAsync(id);
 
-            if (tarefaExistente == null)
-                return false;
+        public async Task<(bool sucesso, string mensagem)> AtualizarAsync(int id, UpdateTarefaDTO dto, int usuarioId)
 
-            tarefaExistente.Titulo = dto.Titulo;
-            tarefaExistente.Descricao = dto.Descricao;
-            tarefaExistente.Status = Enum.Parse<Status>(dto.Status);
-
-            await _tarefaRepository.AtualizarAsync(tarefaExistente);
-            return true;
-        }
-
-        public async Task<bool> CancelarAsync(int id)
         {
             var tarefa = await _tarefaRepository.BuscarPorIdAsync(id);
 
             if (tarefa == null)
-                return false;
+            {
+                
+                return (false, "tarefa não encontrada");
+            }
+
+          
+
+            if (tarefa.UsuarioId != usuarioId)
+            {
+
+                return (false, "essa tarefa não é desse usuario");
+            }
 
             if (tarefa.Status == Status.Concluida)
-                throw new InvalidOperationException("Não é possível cancelar uma tarefa já concluída.");
+            {
+
+                return (false, "a tarefa ja foi concluída.");
+            }
 
             if (tarefa.Status == Status.Cancelada)
-                throw new InvalidOperationException("A tarefa já está cancelada.");
+            {
 
-            await _tarefaRepository.CancelarAsync(id);
-            return true;
+                return (false, "a tarefa ja esta cancelada.");
+            }
+
+           
+
+
+            tarefa.Titulo = dto.Titulo;
+            tarefa.Descricao = dto.Descricao;
+            tarefa.Status = dto.Status;
+
+            await _tarefaRepository.AtualizarAsync(tarefa);
+
+            return (true, null);
         }
+
+
+
+        public async Task<(bool sucesso, string mensagem)> CancelarAsync(int id, int usuarioId)
+        {
+            var tarefa = await _tarefaRepository.BuscarPorIdAsync(id);
+            if (tarefa == null || tarefa.UsuarioId != usuarioId)
+                return (false, "tarefa não encontrada ou nao pertence a esse usuario.");
+
+            if (tarefa.Status == Status.Concluida)
+            {
+
+                return (false, "nao foi possivel cancelar pois a tarefa ja foi concluída.");
+            }
+
+            if (tarefa.Status == Status.Cancelada)
+            {
+
+                return (false, "a tarefa ja esta cancelada.");
+            }
+            var cancelarTarefa = await _tarefaRepository.CancelarAsync(id);
+            return (true, "tarefa cancelada c sucesso!");
+        }
+
+
     }
 }

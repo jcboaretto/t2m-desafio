@@ -6,12 +6,14 @@ namespace Gerenciamento_de_Tarefas.Domain.Entities
     {
         public int Id { get; set; }
         public String Titulo { get; set; } = string.Empty;
-        public String Descricao { get; set; }
-        public Status Status { get; set; }
+        public String? Descricao { get; set; }
+        public Status? Status { get; set; }
         
-        //public int UsuarioId { get; set; }
- 
-      
+        public int UsuarioId { get; set; }
+
+        //public Usuario Usuario { get; set; }
+
+
 
     }
 }

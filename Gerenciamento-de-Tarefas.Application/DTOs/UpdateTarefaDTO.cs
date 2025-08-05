@@ -1,14 +1,11 @@
 ﻿using Gerenciamento_de_Tarefas.Domain.Enuns;
-using System.ComponentModel.DataAnnotations;
 
 namespace Gerenciamento_de_Tarefas.Application.DTOs
 {
-    public class TarefaDTO
+    public class UpdateTarefaDTO
     {
-        public int Id { get; set; }
         public string Titulo { get; set; }
         public string? Descricao { get; set; }
-        public Status? Status { get; set; }
-        public int UsuarioId { get; set; }
+        public Status Status { get; set; } // Enum já existente
     }
 }

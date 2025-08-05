@@ -14,7 +14,7 @@ namespace Gerenciamento_de_Tarefas.Application.Services
             _usuarioRepository = usuarioRepository;
         }
 
-        public async Task<IEnumerable<UsuarioDTO>> ListarTodosAsync()
+        public async Task<IEnumerable<UsuarioResponseDTO>> ListarTodosAsync()
         {
             var usuarios = await _usuarioRepository.ListarAsync();
 
@@ -23,7 +23,7 @@ namespace Gerenciamento_de_Tarefas.Application.Services
                 throw new InvalidOperationException("Nenhum usuário registrado no sistema.");
             }
 
-            return usuarios.Select(u => new UsuarioDTO
+            return usuarios.Select(u => new UsuarioResponseDTO
             {
                 Id = u.Id,
                 Nome = u.Nome,
@@ -31,7 +31,7 @@ namespace Gerenciamento_de_Tarefas.Application.Services
             });
         }
 
-        public async Task<UsuarioDTO> BuscarPorUserNameAsync(string userName)
+        public async Task<UsuarioResponseDTO> BuscarPorUserNameAsync(string userName)
         {
             if (string.IsNullOrWhiteSpace(userName))
             {
@@ -45,7 +45,7 @@ namespace Gerenciamento_de_Tarefas.Application.Services
                 throw new KeyNotFoundException("Usuário não encontrado.");
             }
 
-            return new UsuarioDTO
+            return new UsuarioResponseDTO
             {
                 Id = usuario.Id,
                 Nome = usuario.Nome,
@@ -55,46 +55,40 @@ namespace Gerenciamento_de_Tarefas.Application.Services
 
         public async Task<string> RegistrarAsync(UsuarioDTO dto)
         {
-            
-            if (dto == null)
+            try
             {
-                throw new ArgumentNullException(nameof(dto), "Dados do usuário são obrigatórios.");
+                if (dto == null)
+                    throw new ArgumentNullException(nameof(dto), "Dados do usuário são obrigatórios.");
+
+                if (string.IsNullOrWhiteSpace(dto.Nome))
+                    throw new ArgumentException("Nome é obrigatório.", nameof(dto.Nome));
+
+                if (string.IsNullOrWhiteSpace(dto.UserName))
+                    throw new ArgumentException("Nome de usuário é obrigatório.", nameof(dto.UserName));
+
+                if (string.IsNullOrWhiteSpace(dto.Password))
+                    throw new ArgumentException("Senha é obrigatória.", nameof(dto.Password));
+
+                var usuarioExistente = await _usuarioRepository.BuscarPorUserNameAsync(dto.UserName);
+                if (usuarioExistente != null)
+                    throw new InvalidOperationException("Nome de usuário já cadastrado no sistema.");
+
+                var usuarioNovo = new Usuario
+                {
+                    Nome = dto.Nome,
+                    UserName = dto.UserName,
+                    Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                };
+
+                await _usuarioRepository.RegistarAsync(usuarioNovo);
+
+                return "Usuário registrado com sucesso.";
             }
-
-            if (string.IsNullOrWhiteSpace(dto.Nome))
+            catch (Exception ex)
             {
-                throw new ArgumentException("Nome é obrigatório.", nameof(dto.Nome));
+                // Apenas para debug, depois substitua por logging
+                throw new Exception($"Erro ao registrar usuário: {ex.Message}", ex);
             }
-
-            if (string.IsNullOrWhiteSpace(dto.UserName))
-            {
-                throw new ArgumentException("Nome de usuário é obrigatório.", nameof(dto.UserName));
-            }
-
-            if (string.IsNullOrWhiteSpace(dto.Password))
-            {
-                throw new ArgumentException("Senha é obrigatória.", nameof(dto.Password));
-            }
-
-            //validacao username
-            var usuarioExistente = await _usuarioRepository.BuscarPorUserNameAsync(dto.UserName);
-            if (usuarioExistente != null)
-            {
-                throw new InvalidOperationException("Nome de usuário já cadastrado no sistema.");
-            }
-
-            //se der certo cria o usuario
-            var usuarioNovo = new Usuario
-            {
-                Nome = dto.Nome,
-                UserName = dto.UserName,
-                Password = dto.Password 
-            };
-
-            //salvo no banco 
-            await _usuarioRepository.RegistarAsync(usuarioNovo);
-
-            return "Usuário registrado com sucesso.";
         }
     }
 }

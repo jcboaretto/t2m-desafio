@@ -1,5 +1,6 @@
 ﻿
 using Gerenciamento_de_Tarefas.Application.DTOs;
+using Gerenciamento_de_Tarefas.Domain.Entities;
 
 namespace Gerenciamento_de_Tarefas.Application.Services
 {
@@ -7,8 +8,9 @@ namespace Gerenciamento_de_Tarefas.Application.Services
     {
         Task<IEnumerable<TarefaDTO>> ListarTodasAsync();
         Task<TarefaDTO?> BuscarPorIdAsync(int id);
-        Task<TarefaDTO> AdicionarAsync(TarefaDTO dto);
-        Task<bool> AtualizarAsync(int id, TarefaDTO dto);
-        Task<bool> CancelarAsync(int id);
+        Task<TarefaDTO> AdicionarAsync(CreateTarefaDTO newDTO, int usuarioId);
+        Task<(bool sucesso, string mensagem)> AtualizarAsync(int id, UpdateTarefaDTO dto, int usuarioId);
+        Task<(bool sucesso, string mensagem)> CancelarAsync(int id, int usuarioId);
+        Task<IEnumerable<TarefaDTO>> ListarTarefasDoUsuarioAsync(int usuarioId);
     }
 }

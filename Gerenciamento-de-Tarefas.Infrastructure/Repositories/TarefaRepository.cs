@@ -23,55 +23,79 @@ namespace Gerenciamento_de_Tarefas.Infrastructure.Repositories
             Id SERIAL PRIMARY KEY,
             Titulo TEXT NOT NULL,
             Descricao TEXT,
-            Status TEXT NOT NULL
+            Status TEXT NOT NULL,
+            UsuarioId INT NOT NULL,
+            FOREIGN KEY(UsuarioId) REFERENCES Usuarios(Id)
         )";
             await _connection.ExecuteAsync(sql);
         }
 
-        //UsuarioId INT NOT NULL,
-        //            FOREIGN KEY(UsuarioId) REFERENCES Usuarios(Id)
+
         public async Task<IEnumerable<Tarefa>> ListarAsync()
         {
             var sql = "SELECT * FROM Tarefas";
-            var tarefasDTO = await _connection.QueryAsync<TarefaDTO>(sql);
+            var tarefas = await _connection.QueryAsync<Tarefa>(sql);
+            return tarefas;
+        }
+
+
+        public async Task<IEnumerable<Tarefa>> ListarTarefasDoUsuarioAsync(int usuarioId)
+        {
+            var sql = "SELECT * FROM Tarefas WHERE UsuarioId = @UsuarioId";
+            var tarefasDTO = await _connection.QueryAsync<TarefaDTO>(sql, new { UsuarioId = usuarioId });
 
             return tarefasDTO.Select(t => new Tarefa
             {
                 Id = t.Id,
                 Titulo = t.Titulo,
                 Descricao = t.Descricao,
-                Status = Enum.Parse<Status>(t.Status)
+                Status = Enum.Parse<Status>(t.Status.ToString()),
+                UsuarioId = usuarioId
             });
         }
+
+
 
         public async Task<Tarefa?> BuscarPorIdAsync(int id)
         {
             var sql = "SELECT * FROM Tarefas WHERE Id = @Id";
-            var tarefaDTO = await _connection.QueryFirstOrDefaultAsync<TarefaDTO>(sql, new { Id = id });
+            var tarefa = await _connection.QueryFirstOrDefaultAsync<Tarefa>(sql, new { Id = id });
 
-            if (tarefaDTO == null)
+            if (tarefa == null)
             {
                 return null;
             }
             return new Tarefa
             {
-                Id = tarefaDTO.Id,
-                Titulo = tarefaDTO.Titulo,
-                Descricao = tarefaDTO.Descricao,
-                Status = Enum.Parse<Status>(tarefaDTO.Status),
+                Id = tarefa.Id,
+                Titulo = tarefa.Titulo,
+                Descricao = tarefa.Descricao,
+                Status = Enum.Parse<Status>(tarefa.Status.ToString()),
+                UsuarioId = tarefa.UsuarioId
             };
         }
 
-        public async Task AdicionarAsync(Tarefa tarefa)
+        public async Task<Tarefa> AdicionarAsync(Tarefa tarefa)
         {
-            var sql = "INSERT INTO Tarefas (Titulo, Descricao, Status) VALUES (@Titulo, @Descricao, @Status)";
-            await _connection.ExecuteAsync(sql, new
+
+            var sql = @"
+                INSERT INTO Tarefas (Titulo, Descricao, Status, UsuarioId)
+                VALUES (@Titulo, @Descricao, @Status, @UsuarioId)
+                RETURNING Id;
+                ";
+
+            var id = await _connection.ExecuteScalarAsync<int>(sql, new
             {
-                tarefa.Titulo,
-                tarefa.Descricao,
-                Status = tarefa.Status.ToString()
+                Titulo = tarefa.Titulo,
+                Descricao = tarefa.Descricao,
+                Status = tarefa.Status.ToString(),
+                UsuarioId = tarefa.UsuarioId
             });
+
+            tarefa.Id = id;
+            return tarefa;
         }
+
         //, UsuarioId
         //    , @UsuarioId
 
@@ -85,25 +109,31 @@ namespace Gerenciamento_de_Tarefas.Infrastructure.Repositories
 
         public async Task AtualizarAsync(Tarefa tarefa)
         {
-            var sql = "UPDATE Tarefas SET Titulo = @Titulo, Descricao = @Descricao, Status = @Status WHERE Id = @Id";
+            var sql = "UPDATE Tarefas SET Titulo = @Titulo, " +
+                "Descricao = @Descricao, " +
+                "Status = @Status " +
+                "WHERE Id = @Id";
             await _connection.ExecuteAsync(sql, new
             {
                 tarefa.Id,
                 tarefa.Titulo,
                 tarefa.Descricao,
-                Status = tarefa.Status.ToString()
+                Status = tarefa.Status.ToString() 
             });
         }
 
 
-        public async Task CancelarAsync(int id)
+        public async Task<int> CancelarAsync(int id)
         {
             var sql = "UPDATE Tarefas SET Status = @Status WHERE Id = @Id";
-            await _connection.ExecuteAsync(sql, new
+            var cancelarTarefa = await _connection.ExecuteAsync(sql, new
             {
                 Id = id,
                 Status = Status.Cancelada.ToString()
             });
+
+            return cancelarTarefa;
         }
+
     }
 }

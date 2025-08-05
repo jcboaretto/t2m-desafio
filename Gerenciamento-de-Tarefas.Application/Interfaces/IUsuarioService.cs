@@ -4,8 +4,10 @@ namespace Gerenciamento_de_Tarefas.Application.Services
 {
     public interface IUsuarioService
     {
-        Task<IEnumerable<UsuarioDTO>> ListarTodosAsync();
-        Task<UsuarioDTO> BuscarPorUserNameAsync(string userName);
+        Task<IEnumerable<UsuarioResponseDTO>> ListarTodosAsync();
+        Task<UsuarioResponseDTO> BuscarPorUserNameAsync(string userName);
         Task<string> RegistrarAsync(UsuarioDTO dto);
+
+        
     }
 }

@@ -24,37 +24,30 @@ namespace Gerenciamento_de_Tarefas.Infrastructure.Repositories
                     Nome TEXT NOT NULL,
                     UserName TEXT NOT NULL UNIQUE,
                     Password TEXT NOT NULL
+                    
                 )";
             await _connection.ExecuteAsync(sql);
         }
-
+        //DataCriacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         public async Task RegistarAsync(Usuario usuario)
         {
-            var sql = "INSERT INTO Usuarios (Nome, UserName, Password) VALUES (@Nome, @UserName, @Password)";
-            await _connection.ExecuteAsync(sql, new { usuario.Nome, usuario.UserName, usuario.Password });
+            var sql = @"
+            INSERT INTO Usuarios (Nome, UserName, Password)
+            VALUES (@Nome, @UserName, @Password)";
+
+            await _connection.ExecuteAsync(sql, usuario);
         }
 
         public async Task<Usuario?> BuscarPorUserNameAsync(string userName)
         {
             var sql = "SELECT * FROM Usuarios WHERE UserName = @UserName";
-            var usuarioDTO = await _connection.QueryFirstOrDefaultAsync<UsuarioDTO>(sql, new { UserName = userName });
-            if (usuarioDTO == null)
-            {
-                return null;
-            }
-            return new Usuario
-            {
-                Id = usuarioDTO.Id,
-                Nome = usuarioDTO.Nome,
-                UserName = usuarioDTO.UserName,
-                Password = usuarioDTO.Password,
-            };
+            return await _connection.QueryFirstOrDefaultAsync<Usuario>(sql, new { UserName = userName });
         }
 
         public async Task<IEnumerable<Usuario>> ListarAsync()
         {
-            var sql = "SELECT * FROM Usuarios";
-            var usuarioDTO = await _connection.QueryAsync<UsuarioDTO>(sql);
+            var sql = "SELECT Id, Nome, UserName FROM Usuarios";
+            var usuarioDTO = await _connection.QueryAsync<Usuario>(sql);
             return usuarioDTO.Select(u => new Usuario
             {
                 Id = u.Id,
