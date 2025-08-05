@@ -121,6 +121,9 @@ using Gerenciamento_de_Tarefas.Application.Services;
 using Gerenciamento_de_Tarefas.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
+using Swashbuckle.AspNetCore.Annotations;
+using System.ComponentModel;
 using System.Security.Claims;
 
 namespace Gerenciamento_de_Tarefas.API.Controllers
@@ -137,7 +140,13 @@ namespace Gerenciamento_de_Tarefas.API.Controllers
             _tarefaService = tarefaService;
         }
 
+        [SwaggerOperation(
+        Summary = "Listar tarefas",
+        Description = "Lista todas as tarefas registradas.")]
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> ListarTodas()
         {
             var tarefas = await _tarefaService.ListarTodasAsync();
@@ -150,7 +159,13 @@ namespace Gerenciamento_de_Tarefas.API.Controllers
             return Ok(tarefas);
         }
 
+        [SwaggerOperation(
+        Summary = "Listar uma tarefa",
+        Description = "Lista a tarefa do id desejado se ela pertencer ao usuario logado.")]
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> BuscarPorId(int id)
         {
             var tarefa = await _tarefaService.BuscarPorIdAsync(id);
@@ -161,18 +176,29 @@ namespace Gerenciamento_de_Tarefas.API.Controllers
             return Ok(tarefa);
         }
 
-        
+        [Authorize]
+        [SwaggerOperation(
+        Summary = "Criar uma tarefa",
+        Description = "Cria uma tarefa.")]
         [HttpPost("criar")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Adicionar(CreateTarefaDTO dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-                return Unauthorized();
+            
+            var userIdClaim = User.Claims.FirstOrDefault(c =>
+                c.Type == ClaimTypes.NameIdentifier || c.Type == "id"
+            );
 
-            var userId = int.Parse(userIdClaim.Value);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            {
+
+                return Unauthorized("ID do usuário não encontrado no token.");
+            }
 
             var tarefaCriada = await _tarefaService.AdicionarAsync(dto, userId);
 
@@ -181,7 +207,13 @@ namespace Gerenciamento_de_Tarefas.API.Controllers
 
 
 
+        [SwaggerOperation(
+        Summary = "Atualizar uma tarefa",
+        Description = "atualizar uma tarefa pelo ID, se ela for do user logado")]
         [HttpPut("atualizar/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Atualizar(int id, UpdateTarefaDTO dto)
         {
             if (!ModelState.IsValid)
@@ -203,7 +235,13 @@ namespace Gerenciamento_de_Tarefas.API.Controllers
 
 
 
+        [SwaggerOperation(
+        Summary = "Cancelar uma tarefa",
+        Description = "Cancela uma tarefa pelo ID, se ela for do user logado")]
         [HttpPut("cancelar/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Cancelar(int id)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -214,10 +252,10 @@ namespace Gerenciamento_de_Tarefas.API.Controllers
 
             try
             {
-                var sucesso = await _tarefaService.CancelarAsync(id, userId);
+                var (sucesso, mensagem) = await _tarefaService.CancelarAsync(id, userId);
 
                 if (!sucesso)
-                    return NotFound("Tarefa não encontrada ou não pertence ao usuário.");
+                    return BadRequest(mensagem);
 
                 return Ok("Tarefa cancelada!");
             }

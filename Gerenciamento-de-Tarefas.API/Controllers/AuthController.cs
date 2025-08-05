@@ -1,6 +1,7 @@
 ﻿using Gerenciamento_de_Tarefas.Application.DTOs;
 using Gerenciamento_de_Tarefas.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Gerenciamento_de_Tarefas.API.Controllers
 {
@@ -14,6 +15,8 @@ namespace Gerenciamento_de_Tarefas.API.Controllers
             _tokenService = tokenService;
         }
 
+        [SwaggerOperation(
+        Summary = "Realizar login")]
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDTO loginDTO)
         {
