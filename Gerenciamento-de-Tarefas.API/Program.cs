@@ -13,7 +13,7 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Convertendo os enum do JSON
+
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -24,11 +24,11 @@ builder.Services.Configure<JsonOptions>(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
-// Controllers e Swagger
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Configuração Swagger com autenticação JWT
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.EnableAnnotations();
@@ -60,7 +60,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Autenticação JWT
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -76,22 +76,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// PostgreSQL 
+
 builder.Services.AddScoped<IDbConnection>(sp =>
     new NpgsqlConnection(builder.Configuration.GetConnectionString("Postgres")));
 
-// Repositories
+
 builder.Services.AddScoped<ITarefaRepository, TarefaRepository>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 
-// Services
+
 builder.Services.AddScoped<ITarefaService, TarefaService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
 var app = builder.Build();
 
-// Criação das tabelas
+
 using (var scope = app.Services.CreateScope())
 {
     var usuarioRepository = scope.ServiceProvider.GetRequiredService<IUsuarioRepository>();
@@ -106,7 +106,7 @@ using (var scope = app.Services.CreateScope())
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseAuthentication(); // Adicionado para validar JWT
+app.UseAuthentication(); 
 app.UseAuthorization();
 
 app.MapControllers();
