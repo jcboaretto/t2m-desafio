@@ -55,40 +55,33 @@ namespace Gerenciamento_de_Tarefas.Application.Services
 
         public async Task<string> RegistrarAsync(UsuarioDTO dto)
         {
-            try
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto), "Dados do usuário são obrigatórios.");
+
+            if (string.IsNullOrWhiteSpace(dto.Nome))
+                throw new ArgumentException("Nome é obrigatório.", nameof(dto.Nome));
+
+            if (string.IsNullOrWhiteSpace(dto.UserName))
+                throw new ArgumentException("Nome de usuário é obrigatório.", nameof(dto.UserName));
+
+            if (string.IsNullOrWhiteSpace(dto.Password))
+                throw new ArgumentException("Senha é obrigatória.", nameof(dto.Password));
+
+            var usuarioExistente = await _usuarioRepository.BuscarPorUserNameAsync(dto.UserName);
+            if (usuarioExistente != null)
+                throw new InvalidOperationException("Nome de usuário já cadastrado no sistema.");
+
+            var usuarioNovo = new Usuario
             {
-                if (dto == null)
-                    throw new ArgumentNullException(nameof(dto), "Dados do usuário são obrigatórios.");
+                Nome = dto.Nome,
+                UserName = dto.UserName,
+                Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            };
 
-                if (string.IsNullOrWhiteSpace(dto.Nome))
-                    throw new ArgumentException("Nome é obrigatório.", nameof(dto.Nome));
+            await _usuarioRepository.RegistarAsync(usuarioNovo);
 
-                if (string.IsNullOrWhiteSpace(dto.UserName))
-                    throw new ArgumentException("Nome de usuário é obrigatório.", nameof(dto.UserName));
-
-                if (string.IsNullOrWhiteSpace(dto.Password))
-                    throw new ArgumentException("Senha é obrigatória.", nameof(dto.Password));
-
-                var usuarioExistente = await _usuarioRepository.BuscarPorUserNameAsync(dto.UserName);
-                if (usuarioExistente != null)
-                    throw new InvalidOperationException("Nome de usuário já cadastrado no sistema.");
-
-                var usuarioNovo = new Usuario
-                {
-                    Nome = dto.Nome,
-                    UserName = dto.UserName,
-                    Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                };
-
-                await _usuarioRepository.RegistarAsync(usuarioNovo);
-
-                return "Usuário registrado com sucesso.";
-            }
-            catch (Exception ex)
-            {
-                // Apenas para debug, depois substitua por logging
-                throw new Exception($"Erro ao registrar usuário: {ex.Message}", ex);
-            }
+            return "Usuário registrado com sucesso.";
         }
+
     }
 }
