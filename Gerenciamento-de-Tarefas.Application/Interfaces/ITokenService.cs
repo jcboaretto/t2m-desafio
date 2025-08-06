@@ -1,5 +1,4 @@
 ﻿using Gerenciamento_de_Tarefas.Application.DTOs;
-using Gerenciamento_de_Tarefas.Domain.Entities;
 
 
 namespace Gerenciamento_de_Tarefas.Application.Interfaces

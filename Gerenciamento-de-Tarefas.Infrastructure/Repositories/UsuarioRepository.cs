@@ -7,7 +7,7 @@ using Gerenciamento_de_Tarefas.Application.DTOs;
 
 namespace Gerenciamento_de_Tarefas.Infrastructure.Repositories
 {
-    public class UsuarioRepository : IUsuarioRepository // herdando 
+    public class UsuarioRepository : IUsuarioRepository 
     {
         private readonly IDbConnection _connection;
 
@@ -28,7 +28,7 @@ namespace Gerenciamento_de_Tarefas.Infrastructure.Repositories
                 )";
             await _connection.ExecuteAsync(sql);
         }
-        //DataCriacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        
         public async Task RegistarAsync(Usuario usuario)
         {
             var sql = @"

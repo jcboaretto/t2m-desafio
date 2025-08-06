@@ -24,7 +24,7 @@ namespace Gerenciamento_de_Tarefas.Tests.Services
         [Fact]
         public async Task ListarTodosAsync_DeveRetornarUsuarios()
         {
-            // Arrange
+            
             var usuarios = new List<Usuario>
             {
                 new Usuario { Id = 1, Nome = "José da Silva", UserName = "jose", Password = "123456" },
@@ -33,10 +33,10 @@ namespace Gerenciamento_de_Tarefas.Tests.Services
 
             _usuarioRepositoryMock.Setup(r => r.ListarAsync()).ReturnsAsync(usuarios);
 
-            // Act
+            
             var resultado = await _usuarioService.ListarTodosAsync();
 
-            // Assert
+            
             Assert.NotNull(resultado);
             Assert.Collection(resultado,
                 item => Assert.Equal("José da Silva", item.Nome),
@@ -46,24 +46,24 @@ namespace Gerenciamento_de_Tarefas.Tests.Services
         [Fact]
         public async Task ListarTodosAsync_QuandoNaoHouverUsuarios_DeveLancarExcecao()
         {
-            // Arrange
+            
             _usuarioRepositoryMock.Setup(r => r.ListarAsync()).ReturnsAsync(new List<Usuario>());
 
-            // Act & Assert
+            
             await Assert.ThrowsAsync<InvalidOperationException>(() => _usuarioService.ListarTodosAsync());
         }
 
         [Fact]
         public async Task BuscarPorUserNameAsync_QuandoEncontrar_DeveRetornarUsuario()
         {
-            // Arrange
+            
             var usuario = new Usuario { Id = 1, Nome = "João", UserName = "joao", Password = "senha123" };
             _usuarioRepositoryMock.Setup(r => r.BuscarPorUserNameAsync("joao")).ReturnsAsync(usuario);
 
-            // Act
+            
             var resultado = await _usuarioService.BuscarPorUserNameAsync("joao");
 
-            // Assert
+            
             Assert.Equal("João", resultado.Nome);
             Assert.Equal("joao", resultado.UserName);
         }
@@ -71,17 +71,17 @@ namespace Gerenciamento_de_Tarefas.Tests.Services
         [Fact]
         public async Task BuscarPorUserNameAsync_QuandoNaoEncontrar_DeveLancarExcecao()
         {
-            // Arrange
+            
             _usuarioRepositoryMock.Setup(r => r.BuscarPorUserNameAsync("inexistente")).ReturnsAsync((Usuario?)null);
 
-            // Act & Assert
+            
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _usuarioService.BuscarPorUserNameAsync("inexistente"));
         }
 
         [Fact]
         public async Task RegistrarAsync_QuandoUsuarioForValido_DeveRegistrarComSucesso()
         {
-            // Arrange
+            
             var novoUsuarioDTO = new UsuarioDTO
             {
                 Nome = "Carlos",
@@ -95,17 +95,17 @@ namespace Gerenciamento_de_Tarefas.Tests.Services
             _usuarioRepositoryMock.Setup(r => r.RegistarAsync(It.IsAny<Usuario>()))
                                   .Returns(Task.CompletedTask);
 
-            // Act
+            
             var resultado = await _usuarioService.RegistrarAsync(novoUsuarioDTO);
 
-            // Assert
+            
             Assert.Equal("Usuário registrado com sucesso.", resultado);
         }
 
         [Fact]
         public async Task RegistrarAsync_QuandoUserNameJaExistir_DeveLancarExcecao()
         {
-            // Arrange
+            
             var dto = new UsuarioDTO
             {
                 Nome = "Carlos",
@@ -116,7 +116,7 @@ namespace Gerenciamento_de_Tarefas.Tests.Services
             _usuarioRepositoryMock.Setup(r => r.BuscarPorUserNameAsync(dto.UserName))
                                   .ReturnsAsync(new Usuario());
 
-            // Act & Assert
+            
             var excecao = await Assert.ThrowsAsync<InvalidOperationException>(() => _usuarioService.RegistrarAsync(dto));
             Assert.Equal("Nome de usuário já cadastrado no sistema.", excecao.Message);
         }

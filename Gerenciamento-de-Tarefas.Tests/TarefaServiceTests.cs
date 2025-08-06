@@ -6,6 +6,8 @@ using Gerenciamento_de_Tarefas.Domain.Repositories;
 using Moq;
 using Xunit;
 
+namespace Gerenciamento_de_Tarefas.Tests.Services;
+
 public class TarefaServiceTests
 {
     private readonly Mock<ITarefaRepository> _tarefaRepositoryMock;
@@ -65,14 +67,32 @@ public class TarefaServiceTests
     }
 
     [Fact]
-    public async Task AtualizarAsync_DeveRetornarErro_SeTarefaNaoEncontrada()
+    public async Task AtualizarAsync_DeveLancar_SeTarefaNaoEncontrada()
     {
         _tarefaRepositoryMock.Setup(repo => repo.BuscarPorIdAsync(1)).ReturnsAsync((Tarefa?)null);
 
-        var (sucesso, mensagem) = await _tarefaService.AtualizarAsync(1, new UpdateTarefaDTO(), 10);
+        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            _tarefaService.AtualizarAsync(1, new UpdateTarefaDTO(), 10));
+    }
 
-        Assert.False(sucesso);
-        Assert.Equal("tarefa não encontrada", mensagem);
+    [Fact]
+    public async Task AtualizarAsync_DeveLancar_SeNaoPertencerAoUsuario()
+    {
+        var tarefa = new Tarefa { Id = 1, UsuarioId = 999, Status = Status.Pendente };
+        _tarefaRepositoryMock.Setup(repo => repo.BuscarPorIdAsync(1)).ReturnsAsync(tarefa);
+
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            _tarefaService.AtualizarAsync(1, new UpdateTarefaDTO(), 123));
+    }
+
+    [Fact]
+    public async Task AtualizarAsync_DeveLancar_SeJaConcluida()
+    {
+        var tarefa = new Tarefa { Id = 1, UsuarioId = 123, Status = Status.Concluida };
+        _tarefaRepositoryMock.Setup(repo => repo.BuscarPorIdAsync(1)).ReturnsAsync(tarefa);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _tarefaService.AtualizarAsync(1, new UpdateTarefaDTO(), 123));
     }
 
     [Fact]
@@ -97,34 +117,42 @@ public class TarefaServiceTests
         _tarefaRepositoryMock.Setup(repo => repo.BuscarPorIdAsync(1)).ReturnsAsync(tarefa);
         _tarefaRepositoryMock.Setup(repo => repo.AtualizarAsync(It.IsAny<Tarefa>())).Returns(Task.CompletedTask);
 
-        var (sucesso, mensagem) = await _tarefaService.AtualizarAsync(1, updateDto, 123);
+        await _tarefaService.AtualizarAsync(1, updateDto, 123);
 
-        Assert.True(sucesso);
-        Assert.Null(mensagem);
+        Assert.Equal("Novo título", tarefa.Titulo);
+        Assert.Equal("Nova descrição", tarefa.Descricao);
+        Assert.Equal(Status.Concluida, tarefa.Status);
     }
 
     [Fact]
-    public async Task CancelarAsync_DeveRetornarErro_SeNaoPertencerAoUsuario()
+    public async Task CancelarAsync_DeveLancar_SeNaoPertencerAoUsuario()
     {
         var tarefa = new Tarefa { Id = 1, UsuarioId = 999, Status = Status.Pendente };
         _tarefaRepositoryMock.Setup(repo => repo.BuscarPorIdAsync(1)).ReturnsAsync(tarefa);
 
-        var (sucesso, mensagem) = await _tarefaService.CancelarAsync(1, 123);
-
-        Assert.False(sucesso);
-        Assert.Contains("nao pertence", mensagem);
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            _tarefaService.CancelarAsync(1, 123));
     }
 
     [Fact]
-    public async Task CancelarAsync_DeveRetornarSucesso_SeCancelada()
+    public async Task CancelarAsync_DeveLancar_SeJaConcluida()
+    {
+        var tarefa = new Tarefa { Id = 1, UsuarioId = 123, Status = Status.Concluida };
+        _tarefaRepositoryMock.Setup(repo => repo.BuscarPorIdAsync(1)).ReturnsAsync(tarefa);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _tarefaService.CancelarAsync(1, 123));
+    }
+
+    [Fact]
+    public async Task CancelarAsync_DeveExecutarCancelamento_SeValido()
     {
         var tarefa = new Tarefa { Id = 1, UsuarioId = 123, Status = Status.Pendente };
         _tarefaRepositoryMock.Setup(repo => repo.BuscarPorIdAsync(1)).ReturnsAsync(tarefa);
         _tarefaRepositoryMock.Setup(repo => repo.CancelarAsync(1)).ReturnsAsync(1);
 
-        var (sucesso, mensagem) = await _tarefaService.CancelarAsync(1, 123);
+        await _tarefaService.CancelarAsync(1, 123);
 
-        Assert.True(sucesso);
-        Assert.Equal("tarefa cancelada c sucesso!", mensagem);
+        _tarefaRepositoryMock.Verify(repo => repo.CancelarAsync(1), Times.Once);
     }
 }

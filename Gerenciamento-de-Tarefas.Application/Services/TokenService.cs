@@ -27,7 +27,7 @@ namespace Gerenciamento_de_Tarefas.Application.Services
 
             if (userDataBase == null)
             {
-                throw new UnauthorizedAccessException("Usuário ou senha inválidos.");
+                throw new UnauthorizedAccessException("Usuário não encontrado.");
             }
 
             if (!BCrypt.Net.BCrypt.Verify(loginDTO.Password, userDataBase.Password))

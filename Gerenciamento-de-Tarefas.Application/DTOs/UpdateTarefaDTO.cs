@@ -6,6 +6,6 @@ namespace Gerenciamento_de_Tarefas.Application.DTOs
     {
         public string Titulo { get; set; }
         public string? Descricao { get; set; }
-        public Status Status { get; set; } // Enum já existente
+        public Status Status { get; set; } 
     }
 }

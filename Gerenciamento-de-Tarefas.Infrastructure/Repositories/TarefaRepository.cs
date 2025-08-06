@@ -96,17 +96,6 @@ namespace Gerenciamento_de_Tarefas.Infrastructure.Repositories
             return tarefa;
         }
 
-        //, UsuarioId
-        //    , @UsuarioId
-
-
-        //public async Task<List<Tarefa>> BuscarPorUsuarioAsync(int usuarioId)
-        //{
-        //    var sql = "SELECT * FROM Tarefas WHERE UsuarioId = @UsuarioId";
-        //    var result = await _connection.QueryAsync<Tarefa>(sql, new { UsuarioId = usuarioId });
-        //    return result.ToList();
-        //}
-
         public async Task AtualizarAsync(Tarefa tarefa)
         {
             var sql = "UPDATE Tarefas SET Titulo = @Titulo, " +
